@@ -2,7 +2,8 @@
 ```markdown
 # 🏘️ Smart Community Web System
 
-A web-based community management system built as part of an Open Ended Lab (OEL) project. It enables residents and admins to interact with a centralized platform for community-related activities.
+A web-based community management system built as part of an Open Ended Lab (OEL) project.
+It enables residents and admins to interact with a centralized platform for community-related activities.
 
 ---
 
