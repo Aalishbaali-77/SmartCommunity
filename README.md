@@ -94,4 +94,4 @@ SmartCommunity/
 
 ## 📄 License
 
-This project is for academic purposes only.
+This project is for academic and learning purposes only.

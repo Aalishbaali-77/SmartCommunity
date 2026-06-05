@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register | Smart Community</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/style.css"/>
+</head>
+<body class="bg-light d-flex align-items-center justify-content-center min-vh-100">
+
+  <div class="card shadow-sm p-4 my-4" style="width: 100%; max-width: 480px;">
+
+    <!-- Title -->
+    <div class="text-center mb-4">
+      <h4 class="fw-bold text-primary">🏘️ Smart Community</h4>
+      <p class="text-muted small">Create your resident account</p>
+    </div>
+
+    <!-- Error / Success Alerts -->
+    <div id="errorAlert" class="alert alert-danger d-none"></div>
+    <div id="successAlert" class="alert alert-success d-none"></div>
+
+    <!-- Register Form -->
+    <div id="registerForm">
+
+      <div class="row g-3">
+
+        <!-- Full Name -->
+        <div class="col-12">
+          <label class="form-label fw-semibold">Full Name</label>
+          <input type="text" id="fullName" class="form-control" placeholder="Alishba Ali"/>
+        </div>
+
+        <!-- Email -->
+        <div class="col-12">
+          <label class="form-label fw-semibold">Email Address</label>
+          <input type="email" id="email" class="form-control" placeholder="you@example.com"/>
+        </div>
+
+        <!-- Phone -->
+        <div class="col-12">
+          <label class="form-label fw-semibold">Phone Number</label>
+          <input type="tel" id="phone" class="form-control" placeholder="03XX-XXXXXXX"/>
+        </div>
+
+        <!-- Flat / House Number -->
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Flat / House No.</label>
+          <input type="text" id="flatNo" class="form-control" placeholder="A-101"/>
+        </div>
+
+        <!-- Block -->
+        <div class="col-md-6">
+          <label class="form-label fw-semibold">Block</label>
+          <select id="block" class="form-select">
+            <option value="">-- Select --</option>
+            <option value="A">Block A</option>
+            <option value="B">Block B</option>
+            <option value="C">Block C</option>
+            <option value="D">Block D</option>
+          </select>
+        </div>
+
+        <!-- Role -->
+        <div class="col-12">
+          <label class="form-label fw-semibold">Register as</label>
+          <select id="role" class="form-select">
+            <option value="">-- Select Role --</option>
+            <option value="resident">Resident</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <!-- Password -->
+        <div class="col-12">
+          <label class="form-label fw-semibold">Password</label>
+          <input type="password" id="password" class="form-control" placeholder="Min 6 characters"/>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="col-12">
+          <label class="form-label fw-semibold">Confirm Password</label>
+          <input type="password" id="confirmPassword" class="form-control" placeholder="Repeat password"/>
+        </div>
+
+      </div>
+
+      <button onclick="handleRegister()" class="btn btn-primary w-100 fw-semibold mt-4">
+        Create Account
+      </button>
+
+    </div>
+
+    <hr/>
+    <p class="text-center text-muted small mb-0">
+      Already have an account?
+      <a href="login.html" class="text-primary fw-semibold">Login here</a>
+    </p>
+
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function handleRegister() {
+      const fullName = document.getElementById('fullName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const flatNo = document.getElementById('flatNo').value.trim();
+      const block = document.getElementById('block').value;
+      const role = document.getElementById('role').value;
+      const password = document.getElementById('password').value.trim();
+      const confirmPassword = document.getElementById('confirmPassword').value.trim();
+
+      const errorAlert = document.getElementById('errorAlert');
+      const successAlert = document.getElementById('successAlert');
+
+      // Reset alerts
+      errorAlert.classList.add('d-none');
+      successAlert.classList.add('d-none');
+
+      // Validation
+      if (!fullName || !email || !phone || !flatNo || !block || !role || !password || !confirmPassword) {
+        errorAlert.textContent = 'Please fill in all fields.';
+        errorAlert.classList.remove('d-none');
+        return;
+      }
+
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailPattern.test(email)) {
+        errorAlert.textContent = 'Please enter a valid email address.';
+        errorAlert.classList.remove('d-none');
+        return;
+      }
+
+      const phonePattern = /^[0-9]{10,13}$/;
+      if (!phonePattern.test(phone.replace(/-/g, ''))) {
+        errorAlert.textContent = 'Please enter a valid phone number.';
+        errorAlert.classList.remove('d-none');
+        return;
+      }
+
+      if (password.length < 6) {
+        errorAlert.textContent = 'Password must be at least 6 characters.';
+        errorAlert.classList.remove('d-none');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        errorAlert.textContent = 'Passwords do not match.';
+        errorAlert.classList.remove('d-none');
+        return;
+      }
+
+      // Check if email already registered
+      const existing = JSON.parse(localStorage.getItem('residents') || '[]');
+      const duplicate = existing.find(r => r.email === email);
+      if (duplicate) {
+        errorAlert.textContent = 'This email is already registered.';
+        errorAlert.classList.remove('d-none');
+        return;
+      }
+
+      // Save new resident
+      const newResident = {
+        id: Date.now(),
+        fullName,
+        email,
+        phone,
+        flatNo,
+        block,
+        role,
+        password,
+        registeredAt: new Date().toLocaleDateString()
+      };
+
+      existing.push(newResident);
+      localStorage.setItem('residents', JSON.stringify(existing));
+
+      // Show success
+      successAlert.textContent = '✅ Account created successfully! Redirecting to login...';
+      successAlert.classList.remove('d-none');
+
+      // Redirect after 2 seconds
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 2000);
+    }
+  </script>
+
+</body>
+</html>
+
+<!--
+What this page does:
+
+Full name, email, phone, flat no, block, role, password fields
+All fields validated before submission
+Checks for duplicate email in localStorage
+Saves resident data to localStorage as a JSON array
+Shows success message then redirects to login.html after 2 seconds
+Links back to login.html
+-->
