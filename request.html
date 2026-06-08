@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Service Request | Smart Community</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary:       #1a6b4a;
+      --primary-light: #22885e;
+      --accent:        #f5a623;
+      --dark:          #0f1f17;
+      --light-bg:      #f4f7f5;
+      --card-bg:       #ffffff;
+      --text-main:     #1a2e23;
+      --text-muted:    #5a7a6a;
+      --border:        #d6e8df;
+      --font:          'Segoe UI', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--light-bg); color: var(--text-main); }
+
+    /* NAVBAR */
+    .navbar { background: var(--dark) !important; padding: 0.9rem 2rem; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 20px rgba(0,0,0,0.3); }
+    .navbar-brand { font-weight: 800; font-size: 1.3rem; color: #fff !important; }
+    .navbar-brand span { color: var(--accent); }
+    .nav-link { color: rgba(255,255,255,0.75) !important; font-weight: 500; font-size: 0.9rem; padding: 0.4rem 0.9rem !important; border-radius: 6px; transition: all 0.2s; }
+    .nav-link:hover { color: #fff !important; background: rgba(255,255,255,0.08); }
+    .nav-link.active { color: #fff !important; background: var(--primary); }
+    .btn-nav-login { background: var(--accent); color: var(--dark) !important; font-weight: 700; border-radius: 8px; padding: 0.4rem 1.1rem !important; }
+    .user-badge { background: rgba(255,255,255,0.1); color: #fff; border-radius: 8px; padding: 0.35rem 0.9rem; font-size: 0.85rem; }
+    .user-badge span { color: var(--accent); font-weight: 700; }
+
+    /* PAGE HEADER */
+    .page-header { background: linear-gradient(135deg, var(--dark) 0%, #1a3d28 100%); padding: 2.5rem 0; }
+    .page-header h1 { color: #fff; font-size: 1.8rem; font-weight: 800; }
+    .page-header p  { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin: 0; }
+
+    /* FORM CARD */
+    .form-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; animation: fadeUp 0.4s ease both; }
+    .form-card h5 { font-weight: 800; font-size: 1.1rem; margin-bottom: 1.4rem; color: var(--text-main); }
+    .form-label { font-weight: 600; font-size: 0.87rem; color: var(--text-main); margin-bottom: 0.4rem; }
+    .form-control, .form-select { font-family: var(--font); font-size: 0.88rem; border-color: var(--border); border-radius: 10px; padding: 0.65rem 1rem; }
+    .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,107,74,0.1); }
+    .btn-submit { background: var(--primary); color: #fff; font-weight: 700; border-radius: 10px; border: none; padding: 0.75rem 2rem; font-size: 0.95rem; width: 100%; transition: all 0.2s; }
+    .btn-submit:hover { background: var(--primary-light); transform: translateY(-1px); }
+
+    /* STEPS */
+    .steps { display: flex; gap: 0; margin-bottom: 2rem; }
+    .step { flex: 1; text-align: center; position: relative; }
+    .step::after { content: ''; position: absolute; top: 18px; left: 50%; width: 100%; height: 2px; background: var(--border); z-index: 0; }
+    .step:last-child::after { display: none; }
+    .step-dot { width: 36px; height: 36px; border-radius: 50%; background: var(--border); color: var(--text-muted); font-weight: 700; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.4rem; position: relative; z-index: 1; transition: all 0.3s; }
+    .step.active .step-dot { background: var(--primary); color: #fff; }
+    .step.done .step-dot { background: var(--accent); color: var(--dark); }
+    .step-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
+    .step.active .step-label { color: var(--primary); }
+
+    /* REQUEST LIST */
+    .req-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem 1.4rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; animation: fadeUp 0.35s ease both; transition: all 0.2s; }
+    .req-card:hover { box-shadow: 0 6px 20px rgba(26,107,74,0.1); border-color: var(--primary-light); }
+    .req-title { font-size: 0.9rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.2rem; }
+    .req-meta  { font-size: 0.78rem; color: var(--text-muted); }
+    .status-badge { font-size: 0.72rem; font-weight: 700; padding: 0.28rem 0.8rem; border-radius: 20px; white-space: nowrap; }
+    .badge-Pending      { background: #fff3e0; color: #e65100; }
+    .badge-In-Progress  { background: #e3f2fd; color: #1565c0; }
+    .badge-Resolved     { background: #e8f5e9; color: #2e7d32; }
+
+    /* CATEGORY ICONS */
+    .cat-icon { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; }
+
+    /* SIDEBAR INFO */
+    .info-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 1.3rem; }
+    .info-card h6 { font-weight: 800; font-size: 0.95rem; margin-bottom: 1rem; color: var(--text-main); }
+    .info-row { display: flex; align-items: flex-start; gap: 0.7rem; margin-bottom: 0.9rem; }
+    .info-row:last-child { margin-bottom: 0; }
+    .info-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .info-text { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+    .info-text strong { color: var(--text-main); display: block; margin-bottom: 0.1rem; }
+
+    /* DARK MODE */
+    body.dark { --light-bg:#0f1f17; --card-bg:#162a1e; --text-main:#e8f5ee; --text-muted:#7aab90; --border:#1e3d2a; }
+    .dark-toggle { cursor:pointer; background:rgba(255,255,255,0.08); border:none; color:#fff; border-radius:8px; padding:0.35rem 0.8rem; font-size:0.85rem; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+    /* FOOTER */
+    footer { background: var(--dark); color: rgba(255,255,255,0.5); padding: 1.5rem 0; text-align: center; font-size: 0.83rem; margin-top: 3rem; }
+
+    /* SUCCESS STATE */
+    .success-state { text-align: center; padding: 2.5rem 1rem; }
+    .success-state .icon { font-size: 3.5rem; margin-bottom: 1rem; }
+    .success-state h5 { font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; }
+    .success-state p { font-size: 0.88rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">🏘️ Smart<span>Community</span></a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mx-auto gap-1">
+        <li class="nav-item"><a class="nav-link" href="index.html">🏠 Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="notices.html">📢 Notices</a></li>
+        <li class="nav-item"><a class="nav-link active" href="request.html">🛠️ Requests</a></li>
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">📊 Dashboard</a></li>
+        <li class="nav-item" id="adminNavItem" style="display:none">
+          <a class="nav-link" href="admin.html">⚙️ Admin</a>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <button class="dark-toggle" onclick="toggleDark()">🌙</button>
+        <div id="navRight"></div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="container">
+    <h1>🛠️ Service Requests</h1>
+    <p>Submit a maintenance or community service request — we'll get it sorted</p>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- LEFT: Form + List -->
+    <div class="col-lg-8">
+
+      <!-- Progress Steps -->
+      <div class="steps mb-4">
+        <div class="step active" id="step1">
+          <div class="step-dot">1</div>
+          <div class="step-label">Fill Form</div>
+        </div>
+        <div class="step" id="step2">
+          <div class="step-dot">2</div>
+          <div class="step-label">Submit</div>
+        </div>
+        <div class="step" id="step3">
+          <div class="step-dot">3</div>
+          <div class="step-label">Tracking</div>
+        </div>
+      </div>
+
+      <!-- Request Form -->
+      <div class="form-card mb-4" id="requestFormCard">
+        <h5>📝 New Service Request</h5>
+
+        <div id="errorAlert" class="alert alert-danger d-none mb-3"></div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">Your Name</label>
+            <input type="text" class="form-control" id="residentName" placeholder="Full name"/>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Flat / House No.</label>
+            <input type="text" class="form-control" id="flatNo" placeholder="e.g. A-101"/>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Category</label>
+            <select class="form-select" id="category">
+              <option value="">-- Select Category --</option>
+              <option value="Maintenance">🔧 Maintenance</option>
+              <option value="Cleanliness">🧹 Cleanliness</option>
+              <option value="Security">🔒 Security</option>
+              <option value="Noise">🔊 Noise Complaint</option>
+              <option value="Parking">🚗 Parking</option>
+              <option value="Electricity">⚡ Electricity</option>
+              <option value="Water">💧 Water / Plumbing</option>
+              <option value="Other">📋 Other</option>
+            </select>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Subject</label>
+            <input type="text" class="form-control" id="subject" placeholder="Brief title of the issue"/>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Detail</label>
+            <textarea class="form-control" id="detail" rows="4" placeholder="Describe the issue in detail..."></textarea>
+          </div>
+          <div class="col-12">
+            <label class="form-label">Priority</label>
+            <select class="form-select" id="priority">
+              <option value="Normal">Normal</option>
+              <option value="High">🔴 High</option>
+              <option value="Low">🟢 Low</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-submit mt-4" onclick="submitRequest()">Submit Request 🛠️</button>
+      </div>
+
+      <!-- Success State (hidden) -->
+      <div class="form-card mb-4 d-none" id="successCard">
+        <div class="success-state">
+          <div class="icon">✅</div>
+          <h5>Request Submitted!</h5>
+          <p>Your request has been received. The admin will review it shortly.</p>
+          <button class="btn mt-3 fw-bold" style="background:var(--primary);color:#fff;border-radius:10px;padding:0.6rem 1.5rem;" onclick="resetForm()">Submit Another</button>
+        </div>
+      </div>
+
+      <!-- Existing Requests -->
+      <div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 style="font-weight:800;font-size:1rem;margin:0;">📋 All Requests</h5>
+          <span style="font-size:0.8rem;color:var(--text-muted);" id="reqCount"></span>
+        </div>
+        <div id="requestsList" class="d-flex flex-column gap-2"></div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Sidebar -->
+    <div class="col-lg-4">
+
+      <!-- Status Summary -->
+      <div class="info-card mb-3">
+        <h6>📊 Request Summary</h6>
+        <div class="d-flex flex-column gap-2">
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+            <span>⏳ Pending</span>
+            <strong id="countPending">0</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+            <span>🔄 In Progress</span>
+            <strong id="countProgress">0</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+            <span>✅ Resolved</span>
+            <strong id="countResolved">0</strong>
+          </div>
+          <hr style="margin:0.5rem 0;border-color:var(--border)"/>
+          <div style="display:flex;justify-content:space-between;font-size:0.85rem;">
+            <span>📋 Total</span>
+            <strong id="countTotal">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- How it works -->
+      <div class="info-card">
+        <h6>ℹ️ How it works</h6>
+        <div class="info-row">
+          <span class="info-icon">📝</span>
+          <div class="info-text"><strong>1. Submit</strong>Fill in the form with your issue details and category.</div>
+        </div>
+        <div class="info-row">
+          <span class="info-icon">👀</span>
+          <div class="info-text"><strong>2. Review</strong>Admin reviews and updates the status of your request.</div>
+        </div>
+        <div class="info-row">
+          <span class="info-icon">🔄</span>
+          <div class="info-text"><strong>3. Progress</strong>Track your request status in your dashboard.</div>
+        </div>
+        <div class="info-row">
+          <span class="info-icon">✅</span>
+          <div class="info-text"><strong>4. Resolved</strong>You'll see the resolved status once the issue is fixed.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p>🏘️ <strong style="color:#fff;">SmartCommunity</strong> · Iqra University Karachi · 2026</p>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index:9999">
+  <div id="liveToast" class="toast align-items-center text-white border-0" style="background:var(--primary);" role="alert">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMsg">Done!</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  // ── Auth ──
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const userEmail  = localStorage.getItem('userEmail') || '';
+  const userRole   = localStorage.getItem('userRole')  || '';
+
+  // ── Navbar ──
+  const navRight = document.getElementById('navRight');
+  if (isLoggedIn) {
+    navRight.innerHTML = `
+      <span class="user-badge">👤 <span>${userEmail.split('@')[0]}</span> · ${userRole}</span>
+      <button onclick="logout()" class="btn-nav-login nav-link ms-2">Logout</button>
+    `;
+    if (userRole === 'admin') document.getElementById('adminNavItem').style.display = 'block';
+
+    // Pre-fill name from residents
+    const residents = JSON.parse(localStorage.getItem('residents') || '[]');
+    const me = residents.find(r => r.email === userEmail);
+    if (me) {
+      document.getElementById('residentName').value = me.fullName;
+      document.getElementById('flatNo').value = me.flatNo;
+    }
+  } else {
+    navRight.innerHTML = `<a href="login.html" class="btn-nav-login nav-link">Login / Register</a>`;
+  }
+
+  function logout() {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userRole');
+    window.location.href = 'login.html';
+  }
+
+  // ── Load Requests ──
+  let complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+
+  const catIcons = { Maintenance:'🔧', Cleanliness:'🧹', Security:'🔒', Noise:'🔊', Parking:'🚗', Electricity:'⚡', Water:'💧', Other:'📋' };
+  const catBgs   = { Maintenance:'#e8f5e9', Cleanliness:'#e0f7fa', Security:'#fce4ec', Noise:'#fff3e0', Parking:'#f3e5f5', Electricity:'#fffde7', Water:'#e3f2fd', Other:'#f5f5f5' };
+
+  function renderRequests() {
+    complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+
+    document.getElementById('countPending').textContent  = complaints.filter(c => c.status === 'Pending').length;
+    document.getElementById('countProgress').textContent = complaints.filter(c => c.status === 'In Progress').length;
+    document.getElementById('countResolved').textContent = complaints.filter(c => c.status === 'Resolved').length;
+    document.getElementById('countTotal').textContent    = complaints.length;
+    document.getElementById('reqCount').textContent      = `${complaints.length} total`;
+
+    const list = document.getElementById('requestsList');
+    if (complaints.length === 0) {
+      list.innerHTML = `<div class="text-center py-4 text-muted" style="font-size:0.85rem;">No requests yet.</div>`;
+      return;
+    }
+
+    list.innerHTML = complaints.map(c => `
+      <div class="req-card">
+        <div class="cat-icon" style="background:${catBgs[c.category]||'#f5f5f5'}">${catIcons[c.category]||'📋'}</div>
+        <div style="flex:1;">
+          <div class="req-title">${c.subject}</div>
+          <div class="req-meta">👤 ${c.residentName} &nbsp;·&nbsp; 🏠 ${c.flatNo} &nbsp;·&nbsp; 📅 ${c.date}</div>
+          <div class="req-meta">📁 ${c.category} &nbsp;·&nbsp; 🎯 ${c.priority || 'Normal'}</div>
+        </div>
+        <span class="status-badge badge-${c.status.replace(' ','-')}">${c.status}</span>
+      </div>
+    `).join('');
+  }
+
+  // ── Submit Request ──
+  function submitRequest() {
+    const residentName = document.getElementById('residentName').value.trim();
+    const flatNo       = document.getElementById('flatNo').value.trim();
+    const category     = document.getElementById('category').value;
+    const subject      = document.getElementById('subject').value.trim();
+    const detail       = document.getElementById('detail').value.trim();
+    const priority     = document.getElementById('priority').value;
+    const errorAlert   = document.getElementById('errorAlert');
+
+    errorAlert.classList.add('d-none');
+
+    if (!residentName || !flatNo || !category || !subject || !detail) {
+      errorAlert.textContent = 'Please fill in all required fields.';
+      errorAlert.classList.remove('d-none');
+      return;
+    }
+
+    // Step animation
+    document.getElementById('step1').classList.remove('active');
+    document.getElementById('step1').classList.add('done');
+    document.getElementById('step2').classList.add('active');
+
+    const newRequest = {
+      id:           Date.now(),
+      residentName,
+      flatNo,
+      category,
+      subject,
+      detail,
+      priority,
+      status:       'Pending',
+      date:         new Date().toLocaleDateString('en-GB')
+    };
+
+    complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    complaints.unshift(newRequest);
+    localStorage.setItem('complaints', JSON.stringify(complaints));
+
+    // Show success
+    setTimeout(() => {
+      document.getElementById('step2').classList.remove('active');
+      document.getElementById('step2').classList.add('done');
+      document.getElementById('step3').classList.add('active');
+      document.getElementById('requestFormCard').classList.add('d-none');
+      document.getElementById('successCard').classList.remove('d-none');
+      renderRequests();
+      showToast('✅ Request submitted successfully!');
+    }, 600);
+  }
+
+  // ── Reset Form ──
+  function resetForm() {
+    document.getElementById('requestFormCard').classList.remove('d-none');
+    document.getElementById('successCard').classList.add('d-none');
+    document.getElementById('category').value = '';
+    document.getElementById('subject').value  = '';
+    document.getElementById('detail').value   = '';
+    document.getElementById('priority').value = 'Normal';
+    document.querySelectorAll('.step').forEach(s => { s.classList.remove('active','done'); });
+    document.getElementById('step1').classList.add('active');
+  }
+
+  // ── Toast ──
+  function showToast(msg) {
+    document.getElementById('toastMsg').textContent = msg;
+    const toast = new bootstrap.Toast(document.getElementById('liveToast'), { delay: 3000 });
+    toast.show();
+  }
+
+  // ── Dark Mode ──
+  function toggleDark() {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+  }
+  if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+
+  // ── Init ──
+  renderRequests();
+</script>
+
+</body>
+</html>

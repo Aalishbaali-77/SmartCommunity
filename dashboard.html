@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard | Smart Community</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary:       #1a6b4a;
+      --primary-light: #22885e;
+      --accent:        #f5a623;
+      --dark:          #0f1f17;
+      --light-bg:      #f4f7f5;
+      --card-bg:       #ffffff;
+      --text-main:     #1a2e23;
+      --text-muted:    #5a7a6a;
+      --border:        #d6e8df;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'DM Sans', sans-serif; background: var(--light-bg); color: var(--text-main); }
+    h1,h2,h3,h4,h5,h6 { font-family: 'Syne', sans-serif; }
+
+    /* NAVBAR */
+    .navbar { background: var(--dark) !important; padding: 0.9rem 2rem; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 20px rgba(0,0,0,0.3); }
+    .navbar-brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; color: #fff !important; }
+    .navbar-brand span { color: var(--accent); }
+    .nav-link { color: rgba(255,255,255,0.75) !important; font-weight: 500; font-size: 0.9rem; padding: 0.4rem 0.9rem !important; border-radius: 6px; transition: all 0.2s; }
+    .nav-link:hover { color: #fff !important; background: rgba(255,255,255,0.08); }
+    .nav-link.active { color: #fff !important; background: var(--primary); }
+    .btn-nav-login { background: var(--accent); color: var(--dark) !important; font-weight: 700; border-radius: 8px; padding: 0.4rem 1.1rem !important; }
+    .user-badge { background: rgba(255,255,255,0.1); color: #fff; border-radius: 8px; padding: 0.35rem 0.9rem; font-size: 0.85rem; }
+    .user-badge span { color: var(--accent); font-weight: 700; }
+
+    /* PAGE HEADER */
+    .page-header { background: linear-gradient(135deg, var(--dark) 0%, #1a3d28 100%); padding: 2.5rem 0; }
+    .page-header h1 { color: #fff; font-size: 1.8rem; font-weight: 800; }
+    .page-header p { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin: 0; }
+
+    /* STAT CARDS */
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 1.4rem; display: flex; align-items: center; gap: 1rem; transition: all 0.2s; animation: fadeUp 0.4s ease both; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(26,107,74,0.12); }
+    .stat-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+    .stat-num { font-family: 'Syne', sans-serif; font-size: 1.9rem; font-weight: 800; color: var(--text-main); line-height: 1; }
+    .stat-lbl { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* CARDS */
+    .dash-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 1.4rem; height: 100%; animation: fadeUp 0.4s ease both; }
+    .dash-card-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; margin-bottom: 1.2rem; color: var(--text-main); }
+
+    /* REQUEST ROWS */
+    .req-row { display: flex; align-items: center; justify-content: space-between; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+    .req-row:last-child { border-bottom: none; }
+    .req-title { font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
+    .req-meta { font-size: 0.75rem; color: var(--text-muted); }
+    .status-badge { font-size: 0.7rem; font-weight: 700; padding: 0.25rem 0.7rem; border-radius: 20px; white-space: nowrap; }
+    .status-Pending     { background: #fff3e0; color: #e65100; }
+    .status-In\ Progress { background: #e3f2fd; color: #1565c0; }
+    .status-Resolved    { background: #e8f5e9; color: #2e7d32; }
+
+    /* NOTICE ITEMS */
+    .notice-item { display: flex; gap: 0.8rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+    .notice-item:last-child { border-bottom: none; }
+    .notice-dot { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+    .notice-text h6 { font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.15rem; }
+    .notice-text p  { font-size: 0.78rem; color: var(--text-muted); margin: 0; }
+
+    /* PROFILE CARD */
+    .profile-avatar { width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--accent)); display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #fff; font-family: 'Syne', sans-serif; font-weight: 800; margin: 0 auto 1rem; }
+    .profile-detail { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.83rem; }
+    .profile-detail:last-child { border-bottom: none; }
+    .profile-detail .key { color: var(--text-muted); }
+    .profile-detail .val { font-weight: 600; color: var(--text-main); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .stat-card:nth-child(1) { animation-delay: 0.05s; }
+    .stat-card:nth-child(2) { animation-delay: 0.10s; }
+    .stat-card:nth-child(3) { animation-delay: 0.15s; }
+    .stat-card:nth-child(4) { animation-delay: 0.20s; }
+
+    /* FOOTER */
+    footer { background: var(--dark); color: rgba(255,255,255,0.5); padding: 1.5rem 0; text-align: center; font-size: 0.83rem; margin-top: 3rem; }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* DARK MODE */
+    body.dark { --light-bg: #0f1f17; --card-bg: #162a1e; --text-main: #e8f5ee; --text-muted: #7aab90; --border: #1e3d2a; }
+    body.dark .page-header { background: linear-gradient(135deg, #060e09 0%, #0f1f17 100%); }
+    .dark-toggle { cursor: pointer; background: rgba(255,255,255,0.08); border: none; color: #fff; border-radius: 8px; padding: 0.35rem 0.8rem; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">🏘️ Smart<span>Community</span></a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mx-auto gap-1">
+        <li class="nav-item"><a class="nav-link" href="index.html">🏠 Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="notices.html">📢 Notices</a></li>
+        <li class="nav-item"><a class="nav-link" href="request.html">🛠️ Requests</a></li>
+        <li class="nav-item"><a class="nav-link active" href="dashboard.html">📊 Dashboard</a></li>
+        <li class="nav-item" id="adminNavItem" style="display:none">
+          <a class="nav-link" href="admin.html">⚙️ Admin</a>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <button class="dark-toggle" onclick="toggleDark()">🌙</button>
+        <div id="navRight"></div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="container">
+    <h1 id="dashTitle">📊 My Dashboard</h1>
+    <p id="dashSub">Welcome back! Here's your community overview.</p>
+  </div>
+</div>
+
+<div class="container py-4">
+
+  <!-- STAT CARDS ROW -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#e8f5e9;">🛠️</div>
+        <div>
+          <div class="stat-num" id="totalReq">0</div>
+          <div class="stat-lbl">My Requests</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#fff3e0;">⏳</div>
+        <div>
+          <div class="stat-num" id="pendingReq">0</div>
+          <div class="stat-lbl">Pending</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#e3f2fd;">🔄</div>
+        <div>
+          <div class="stat-num" id="progressReq">0</div>
+          <div class="stat-lbl">In Progress</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:#f3e5f5;">✅</div>
+        <div>
+          <div class="stat-num" id="resolvedReq">0</div>
+          <div class="stat-lbl">Resolved</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="row g-3">
+
+    <!-- My Requests Table -->
+    <div class="col-lg-8">
+      <div class="dash-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="dash-card-title mb-0">🛠️ My Service Requests</div>
+          <a href="request.html" class="btn btn-sm fw-bold" style="background:var(--primary);color:#fff;border-radius:8px;font-size:0.8rem;">+ New Request</a>
+        </div>
+        <div id="myRequestsList">
+          <div class="text-center py-3 text-muted">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Card -->
+    <div class="col-lg-4">
+      <div class="dash-card">
+        <div class="dash-card-title">👤 My Profile</div>
+        <div class="profile-avatar" id="profileAvatar">?</div>
+        <div id="profileDetails">
+          <div class="text-center text-muted" style="font-size:0.85rem;">Loading...</div>
+        </div>
+        <a href="profile.html" class="btn btn-sm w-100 mt-3 fw-bold" style="background:var(--light-bg);color:var(--primary);border-radius:8px;">Edit Profile →</a>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="col-lg-6">
+      <div class="dash-card">
+        <div class="dash-card-title">📊 Request Status Overview</div>
+        <canvas id="statusChart" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Latest Notices -->
+    <div class="col-lg-6">
+      <div class="dash-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="dash-card-title mb-0">📢 Latest Notices</div>
+          <a href="notices.html" style="font-size:0.8rem;color:var(--primary);font-weight:600;text-decoration:none;">View all →</a>
+        </div>
+        <div id="latestNotices">
+          <div class="text-center py-3 text-muted">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p>🏘️ <strong style="color:#fff;">SmartCommunity</strong> · Iqra University Karachi · 2026</p>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index:9999">
+  <div id="liveToast" class="toast align-items-center text-white border-0" style="background:var(--primary);" role="alert">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMsg">✅ Done!</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  // ── Auth Guard ──
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  if (!isLoggedIn) window.location.href = 'login.html';
+
+  const userEmail = localStorage.getItem('userEmail') || '';
+  const userRole  = localStorage.getItem('userRole')  || '';
+  const residents     = JSON.parse(localStorage.getItem('residents')     || '[]');
+  const complaints    = JSON.parse(localStorage.getItem('complaints')    || '[]');
+  const announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+
+  // ── Navbar ──
+  const navRight = document.getElementById('navRight');
+  navRight.innerHTML = `
+    <span class="user-badge">👤 <span>${userEmail.split('@')[0]}</span> · ${userRole}</span>
+    <button onclick="logout()" class="btn-nav-login nav-link ms-2">Logout</button>
+  `;
+  if (userRole === 'admin') document.getElementById('adminNavItem').style.display = 'block';
+
+  function logout() {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userRole');
+    window.location.href = 'login.html';
+  }
+
+  // ── Page Header ──
+  document.getElementById('dashTitle').textContent = `📊 ${userEmail.split('@')[0]}'s Dashboard`;
+  document.getElementById('dashSub').textContent   = `Role: ${userRole} · ${new Date().toDateString()}`;
+
+  // ── My Requests (filter by logged-in user OR show all for admin) ──
+  const myRequests = userRole === 'admin'
+    ? complaints
+    : complaints.filter(c => c.residentName.toLowerCase().includes(userEmail.split('@')[0].toLowerCase()));
+
+  const allRequests = userRole === 'admin' ? complaints : myRequests;
+
+  // fallback: show all if none matched
+  const displayReqs = allRequests.length > 0 ? allRequests : complaints;
+
+  // ── Stat Counters ──
+  function animateCount(el, target) {
+    let count = 0;
+    const step = Math.ceil(target / 25) || 1;
+    const iv = setInterval(() => {
+      count = Math.min(count + step, target);
+      el.textContent = count;
+      if (count >= target) clearInterval(iv);
+    }, 40);
+  }
+
+  animateCount(document.getElementById('totalReq'),    displayReqs.length);
+  animateCount(document.getElementById('pendingReq'),  displayReqs.filter(c => c.status === 'Pending').length);
+  animateCount(document.getElementById('progressReq'), displayReqs.filter(c => c.status === 'In Progress').length);
+  animateCount(document.getElementById('resolvedReq'), displayReqs.filter(c => c.status === 'Resolved').length);
+
+  // ── Requests List ──
+  const reqList = document.getElementById('myRequestsList');
+  if (displayReqs.length === 0) {
+    reqList.innerHTML = `
+      <div class="text-center py-4">
+        <div style="font-size:2.5rem;">📭</div>
+        <p class="text-muted mt-2" style="font-size:0.85rem;">No requests yet.</p>
+        <a href="request.html" class="btn btn-sm fw-bold mt-1" style="background:var(--primary);color:#fff;border-radius:8px;">Submit your first request</a>
+      </div>`;
+  } else {
+    reqList.innerHTML = displayReqs.map(c => `
+      <div class="req-row">
+        <div>
+          <div class="req-title">${c.subject}</div>
+          <div class="req-meta">📁 ${c.category} &nbsp;·&nbsp; 👤 ${c.residentName} &nbsp;·&nbsp; 📅 ${c.date}</div>
+        </div>
+        <span class="status-badge status-${c.status}">${c.status}</span>
+      </div>
+    `).join('');
+  }
+
+  // ── Profile ──
+  const me = residents.find(r => r.email === userEmail) || residents[0];
+  if (me) {
+    document.getElementById('profileAvatar').textContent = me.fullName.charAt(0).toUpperCase();
+    document.getElementById('profileDetails').innerHTML = `
+      <div class="profile-detail"><span class="key">Name</span><span class="val">${me.fullName}</span></div>
+      <div class="profile-detail"><span class="key">Email</span><span class="val">${me.email}</span></div>
+      <div class="profile-detail"><span class="key">Phone</span><span class="val">${me.phone}</span></div>
+      <div class="profile-detail"><span class="key">Flat</span><span class="val">${me.flatNo} · Block ${me.block}</span></div>
+      <div class="profile-detail"><span class="key">Role</span><span class="val">${me.role}</span></div>
+      <div class="profile-detail"><span class="key">Joined</span><span class="val">${me.registeredAt}</span></div>
+    `;
+  }
+
+  // ── Chart.js Doughnut ──
+  const pending    = complaints.filter(c => c.status === 'Pending').length;
+  const inProgress = complaints.filter(c => c.status === 'In Progress').length;
+  const resolved   = complaints.filter(c => c.status === 'Resolved').length;
+
+  new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Pending', 'In Progress', 'Resolved'],
+      datasets: [{
+        data: [pending, inProgress, resolved],
+        backgroundColor: ['#f5a623', '#2196f3', '#4caf50'],
+        borderWidth: 0,
+        hoverOffset: 6
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { family: 'DM Sans' }, padding: 16 } }
+      },
+      cutout: '65%'
+    }
+  });
+
+  // ── Latest Notices ──
+  const badgeBgs   = { warning:'#fff3e0', primary:'#e3f2fd', success:'#e8f5e9', info:'#e0f7fa', danger:'#fce4ec' };
+  const badgeIcons = { warning:'⚠️', primary:'📌', success:'✅', info:'ℹ️', danger:'🚨' };
+
+  document.getElementById('latestNotices').innerHTML = announcements.slice(0, 4).map(a => `
+    <div class="notice-item">
+      <div class="notice-dot" style="background:${badgeBgs[a.badge] || '#f5f5f5'}">${badgeIcons[a.badge] || '📋'}</div>
+      <div class="notice-text">
+        <h6>${a.title}</h6>
+        <p>${a.date} · ${a.author}</p>
+      </div>
+    </div>
+  `).join('');
+
+  // ── Dark Mode ──
+  function toggleDark() {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+  }
+  if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+</script>
+
+</body>
+</html>

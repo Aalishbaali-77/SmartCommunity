@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel | Smart Community</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary:       #1a6b4a;
+      --primary-light: #22885e;
+      --accent:        #f5a623;
+      --dark:          #0f1f17;
+      --light-bg:      #f4f7f5;
+      --card-bg:       #ffffff;
+      --text-main:     #1a2e23;
+      --text-muted:    #5a7a6a;
+      --border:        #d6e8df;
+      --font:          'Segoe UI', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--light-bg); color: var(--text-main); }
+
+    /* NAVBAR */
+    .navbar { background: var(--dark) !important; padding: 0.9rem 2rem; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 20px rgba(0,0,0,0.3); }
+    .navbar-brand { font-weight: 800; font-size: 1.3rem; color: #fff !important; }
+    .navbar-brand span { color: var(--accent); }
+    .nav-link { color: rgba(255,255,255,0.75) !important; font-weight: 500; font-size: 0.9rem; padding: 0.4rem 0.9rem !important; border-radius: 6px; transition: all 0.2s; }
+    .nav-link:hover { color: #fff !important; background: rgba(255,255,255,0.08); }
+    .nav-link.active { color: #fff !important; background: var(--primary); }
+    .btn-nav-login { background: var(--accent); color: var(--dark) !important; font-weight: 700; border-radius: 8px; padding: 0.4rem 1.1rem !important; }
+    .user-badge { background: rgba(255,255,255,0.1); color: #fff; border-radius: 8px; padding: 0.35rem 0.9rem; font-size: 0.85rem; }
+    .user-badge span { color: var(--accent); font-weight: 700; }
+
+    /* PAGE HEADER */
+    .page-header { background: linear-gradient(135deg, var(--dark) 0%, #1a3d28 100%); padding: 2.5rem 0; }
+    .page-header h1 { color: #fff; font-size: 1.8rem; font-weight: 800; }
+    .page-header p  { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin: 0; }
+
+    /* TABS */
+    .admin-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .tab-btn { padding: 0.5rem 1.2rem; border-radius: 10px; font-size: 0.88rem; font-weight: 600; border: 1px solid var(--border); background: var(--card-bg); cursor: pointer; transition: all 0.2s; font-family: var(--font); color: var(--text-main); }
+    .tab-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .tab-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* STAT CARDS */
+    .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 1.3rem; display: flex; align-items: center; gap: 1rem; animation: fadeUp 0.4s ease both; transition: all 0.2s; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(26,107,74,0.12); }
+    .stat-icon { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+    .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--text-main); line-height: 1; }
+    .stat-lbl { font-size: 0.78rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* TABLE */
+    .admin-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 1.4rem; animation: fadeUp 0.4s ease both; }
+    .admin-card-title { font-weight: 800; font-size: 1rem; margin-bottom: 1.2rem; color: var(--text-main); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 0.6rem 0.8rem; border-bottom: 2px solid var(--border); text-align: left; }
+    td { padding: 0.75rem 0.8rem; border-bottom: 1px solid var(--border); color: var(--text-main); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--light-bg); }
+
+    /* STATUS BADGES */
+    .status-badge { font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.75rem; border-radius: 20px; white-space: nowrap; }
+    .badge-Pending     { background: #fff3e0; color: #e65100; }
+    .badge-In-Progress { background: #e3f2fd; color: #1565c0; }
+    .badge-Resolved    { background: #e8f5e9; color: #2e7d32; }
+    .badge-admin       { background: #fce4ec; color: #880e4f; }
+    .badge-resident    { background: #e8f5e9; color: #2e7d32; }
+
+    /* ACTION BUTTONS */
+    .btn-action { font-size: 0.75rem; font-weight: 600; padding: 0.25rem 0.7rem; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; font-family: var(--font); }
+    .btn-pending    { background: #fff3e0; color: #e65100; }
+    .btn-progress   { background: #e3f2fd; color: #1565c0; }
+    .btn-resolved   { background: #e8f5e9; color: #2e7d32; }
+    .btn-delete     { background: #fce4ec; color: #c62828; }
+    .btn-action:hover { opacity: 0.8; transform: scale(1.05); }
+
+    /* SEARCH */
+    .search-bar { position: relative; margin-bottom: 1rem; }
+    .search-bar input { width: 100%; padding: 0.65rem 1rem 0.65rem 2.6rem; border: 1px solid var(--border); border-radius: 10px; font-size: 0.88rem; outline: none; font-family: var(--font); background: var(--card-bg); }
+    .search-bar input:focus { border-color: var(--primary); }
+    .search-icon { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+    /* FORM */
+    .form-control, .form-select { font-family: var(--font); font-size: 0.88rem; border-color: var(--border); border-radius: 10px; }
+    .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,107,74,0.1); }
+    .btn-primary-custom { background: var(--primary); color: #fff; font-weight: 700; border-radius: 10px; border: none; padding: 0.6rem 1.4rem; font-size: 0.88rem; transition: all 0.2s; cursor: pointer; font-family: var(--font); }
+    .btn-primary-custom:hover { background: var(--primary-light); }
+
+    /* DARK MODE */
+    body.dark { --light-bg:#0f1f17; --card-bg:#162a1e; --text-main:#e8f5ee; --text-muted:#7aab90; --border:#1e3d2a; }
+    body.dark tr:hover td { background: #1a3326; }
+    .dark-toggle { cursor:pointer; background:rgba(255,255,255,0.08); border:none; color:#fff; border-radius:8px; padding:0.35rem 0.8rem; font-size:0.85rem; }
+
+    /* ACCESS DENIED */
+    .access-denied { text-align: center; padding: 5rem 1rem; }
+    .access-denied .icon { font-size: 4rem; margin-bottom: 1rem; }
+    .access-denied h4 { font-weight: 800; color: var(--text-main); margin-bottom: 0.5rem; }
+    .access-denied p { color: var(--text-muted); font-size: 0.9rem; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+
+    /* FOOTER */
+    footer { background: var(--dark); color: rgba(255,255,255,0.5); padding: 1.5rem 0; text-align: center; font-size: 0.83rem; margin-top: 3rem; }
+
+    /* TOAST */
+    .toast-container { position: fixed; top: 1rem; right: 1rem; z-index: 9999; }
+
+    @media(max-width:768px) { th, td { font-size: 0.78rem; padding: 0.5rem; } }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">🏘️ Smart<span>Community</span></a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mx-auto gap-1">
+        <li class="nav-item"><a class="nav-link" href="index.html">🏠 Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="notices.html">📢 Notices</a></li>
+        <li class="nav-item"><a class="nav-link" href="request.html">🛠️ Requests</a></li>
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">📊 Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link active" href="admin.html">⚙️ Admin</a></li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <button class="dark-toggle" onclick="toggleDark()">🌙</button>
+        <div id="navRight"></div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- TOAST -->
+<div class="toast-container">
+  <div id="liveToast" class="toast align-items-center text-white border-0" style="background:var(--primary);" role="alert">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMsg">Done!</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ACCESS DENIED (shown if not admin) -->
+<div id="accessDenied" class="access-denied" style="display:none;">
+  <div class="icon">🔒</div>
+  <h4>Access Denied</h4>
+  <p>This page is only accessible to administrators.</p>
+  <a href="index.html" class="btn mt-3 fw-bold" style="background:var(--primary);color:#fff;border-radius:10px;padding:0.6rem 1.5rem;">Go Home</a>
+</div>
+
+<!-- ADMIN CONTENT -->
+<div id="adminContent">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="container">
+      <h1>⚙️ Admin Panel</h1>
+      <p>Manage residents, service requests, and community notices</p>
+    </div>
+  </div>
+
+  <div class="container py-4">
+
+    <!-- STAT CARDS -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e8f5e9;">👥</div>
+          <div><div class="stat-num" id="sResidents">0</div><div class="stat-lbl">Residents</div></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#fff3e0;">⏳</div>
+          <div><div class="stat-num" id="sPending">0</div><div class="stat-lbl">Pending</div></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#e3f2fd;">🔄</div>
+          <div><div class="stat-num" id="sProgress">0</div><div class="stat-lbl">In Progress</div></div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#f3e5f5;">✅</div>
+          <div><div class="stat-num" id="sResolved">0</div><div class="stat-lbl">Resolved</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="admin-tabs">
+      <button class="tab-btn active" onclick="switchTab('requests', this)">🛠️ Requests</button>
+      <button class="tab-btn" onclick="switchTab('residents', this)">👥 Residents</button>
+      <button class="tab-btn" onclick="switchTab('notices', this)">📢 Notices</button>
+      <button class="tab-btn" onclick="switchTab('analytics', this)">📊 Analytics</button>
+    </div>
+
+    <!-- TAB: REQUESTS -->
+    <div class="tab-content active" id="tab-requests">
+      <div class="admin-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="admin-card-title mb-0">🛠️ All Service Requests</div>
+          <span style="font-size:0.8rem;color:var(--text-muted);" id="reqTabCount"></span>
+        </div>
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="reqSearch" placeholder="Search by name, subject or category..." oninput="renderRequests()"/>
+        </div>
+        <div class="table-responsive">
+          <table id="reqTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Resident</th>
+                <th>Flat</th>
+                <th>Category</th>
+                <th>Subject</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="reqTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: RESIDENTS -->
+    <div class="tab-content" id="tab-residents">
+      <div class="admin-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="admin-card-title mb-0">👥 Registered Residents</div>
+          <span style="font-size:0.8rem;color:var(--text-muted);" id="resTabCount"></span>
+        </div>
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="resSearch" placeholder="Search by name, email or block..." oninput="renderResidents()"/>
+        </div>
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Flat</th>
+                <th>Block</th>
+                <th>Role</th>
+                <th>Joined</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="resTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: NOTICES -->
+    <div class="tab-content" id="tab-notices">
+      <div class="row g-3">
+        <div class="col-lg-5">
+          <div class="admin-card">
+            <div class="admin-card-title">📝 Post New Notice</div>
+            <div class="mb-2">
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Title</label>
+              <input type="text" class="form-control mb-2" id="nTitle" placeholder="Notice title..."/>
+            </div>
+            <div class="mb-2">
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Content</label>
+              <textarea class="form-control mb-2" id="nBody" rows="4" placeholder="Notice content..."></textarea>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold" style="font-size:0.85rem;">Type</label>
+              <select class="form-select" id="nBadge">
+                <option value="primary">📌 General</option>
+                <option value="warning">⚠️ Urgent</option>
+                <option value="success">✅ Good News</option>
+                <option value="info">ℹ️ Info</option>
+                <option value="danger">🚨 Alert</option>
+              </select>
+            </div>
+            <button class="btn-primary-custom w-100" onclick="postNotice()">Post Notice 📢</button>
+          </div>
+        </div>
+        <div class="col-lg-7">
+          <div class="admin-card">
+            <div class="admin-card-title">📢 All Notices</div>
+            <div id="noticesAdminList" class="d-flex flex-column gap-2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ANALYTICS -->
+    <div class="tab-content" id="tab-analytics">
+      <div class="row g-3">
+        <div class="col-lg-6">
+          <div class="admin-card">
+            <div class="admin-card-title">📊 Request Status Breakdown</div>
+            <canvas id="statusChart" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="admin-card">
+            <div class="admin-card-title">📁 Requests by Category</div>
+            <canvas id="categoryChart" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="admin-card">
+            <div class="admin-card-title">🏘️ Residents by Block</div>
+            <canvas id="blockChart" height="220"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="admin-card">
+            <div class="admin-card-title">📋 Quick Summary</div>
+            <div id="summaryList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p>🏘️ <strong style="color:#fff;">SmartCommunity</strong> · Admin Panel · Iqra University Karachi · 2026</p>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  // ── Auth Guard: Admin Only ──
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const userEmail  = localStorage.getItem('userEmail') || '';
+  const userRole   = localStorage.getItem('userRole')  || '';
+
+  if (!isLoggedIn || userRole !== 'admin') {
+    document.getElementById('adminContent').style.display = 'none';
+    document.getElementById('accessDenied').style.display = 'block';
+  }
+
+  // ── Navbar ──
+  document.getElementById('navRight').innerHTML = `
+    <span class="user-badge">👤 <span>${userEmail.split('@')[0]}</span> · Admin</span>
+    <button onclick="logout()" class="btn-nav-login nav-link ms-2">Logout</button>
+  `;
+
+  function logout() {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userRole');
+    window.location.href = 'login.html';
+  }
+
+  // ── Data ──
+  let complaints    = JSON.parse(localStorage.getItem('complaints')    || '[]');
+  let residents     = JSON.parse(localStorage.getItem('residents')     || '[]');
+  let announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+
+  // ── Stat Cards ──
+  function updateStats() {
+    complaints    = JSON.parse(localStorage.getItem('complaints')    || '[]');
+    residents     = JSON.parse(localStorage.getItem('residents')     || '[]');
+    announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+    document.getElementById('sResidents').textContent = residents.length;
+    document.getElementById('sPending').textContent   = complaints.filter(c => c.status === 'Pending').length;
+    document.getElementById('sProgress').textContent  = complaints.filter(c => c.status === 'In Progress').length;
+    document.getElementById('sResolved').textContent  = complaints.filter(c => c.status === 'Resolved').length;
+  }
+
+  // ── Tab Switch ──
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('active');
+    btn.classList.add('active');
+    if (tab === 'analytics') renderCharts();
+  }
+
+  // ── REQUESTS TABLE ──
+  function renderRequests() {
+    complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const search = document.getElementById('reqSearch').value.toLowerCase();
+    const filtered = complaints.filter(c =>
+      c.residentName.toLowerCase().includes(search) ||
+      c.subject.toLowerCase().includes(search) ||
+      c.category.toLowerCase().includes(search)
+    );
+    document.getElementById('reqTabCount').textContent = `${filtered.length} requests`;
+    document.getElementById('reqTableBody').innerHTML = filtered.map((c, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td><strong>${c.residentName}</strong></td>
+        <td>${c.flatNo}</td>
+        <td>${c.category}</td>
+        <td>${c.subject}</td>
+        <td>${c.date}</td>
+        <td><span class="status-badge badge-${c.status.replace(' ','-')}">${c.status}</span></td>
+        <td>
+          <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
+            <button class="btn-action btn-pending"  onclick="updateStatus(${c.id},'Pending')">Pending</button>
+            <button class="btn-action btn-progress" onclick="updateStatus(${c.id},'In Progress')">Progress</button>
+            <button class="btn-action btn-resolved" onclick="updateStatus(${c.id},'Resolved')">Resolved</button>
+            <button class="btn-action btn-delete"   onclick="deleteRequest(${c.id})">🗑️</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function updateStatus(id, status) {
+    complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+    const idx = complaints.findIndex(c => c.id === id);
+    if (idx !== -1) {
+      complaints[idx].status = status;
+      localStorage.setItem('complaints', JSON.stringify(complaints));
+      renderRequests();
+      updateStats();
+      showToast(`✅ Status updated to "${status}"`);
+    }
+  }
+
+  function deleteRequest(id) {
+    if (!confirm('Delete this request?')) return;
+    complaints = complaints.filter(c => c.id !== id);
+    localStorage.setItem('complaints', JSON.stringify(complaints));
+    renderRequests();
+    updateStats();
+    showToast('🗑️ Request deleted.');
+  }
+
+  // ── RESIDENTS TABLE ──
+  function renderResidents() {
+    residents = JSON.parse(localStorage.getItem('residents') || '[]');
+    const search = document.getElementById('resSearch').value.toLowerCase();
+    const filtered = residents.filter(r =>
+      r.fullName.toLowerCase().includes(search) ||
+      r.email.toLowerCase().includes(search) ||
+      r.block.toLowerCase().includes(search)
+    );
+    document.getElementById('resTabCount').textContent = `${filtered.length} residents`;
+    document.getElementById('resTableBody').innerHTML = filtered.map((r, i) => `
+      <tr>
+        <td>${i + 1}</td>
+        <td><strong>${r.fullName}</strong></td>
+        <td>${r.email}</td>
+        <td>${r.phone}</td>
+        <td>${r.flatNo}</td>
+        <td>Block ${r.block}</td>
+        <td><span class="status-badge badge-${r.role}">${r.role}</span></td>
+        <td>${r.registeredAt}</td>
+        <td>
+          <button class="btn-action btn-delete" onclick="deleteResident(${r.id})">🗑️</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function deleteResident(id) {
+    if (!confirm('Remove this resident?')) return;
+    residents = residents.filter(r => r.id !== id);
+    localStorage.setItem('residents', JSON.stringify(residents));
+    renderResidents();
+    updateStats();
+    showToast('🗑️ Resident removed.');
+  }
+
+  // ── NOTICES ──
+  const badgeBgs   = { warning:'#fff3e0', primary:'#e3f2fd', success:'#e8f5e9', info:'#e0f7fa', danger:'#fce4ec' };
+  const badgeIcons = { warning:'⚠️', primary:'📌', success:'✅', info:'ℹ️', danger:'🚨' };
+
+  function renderNoticesAdmin() {
+    announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+    document.getElementById('noticesAdminList').innerHTML = announcements.map(a => `
+      <div style="display:flex;align-items:center;gap:0.8rem;padding:0.7rem 0;border-bottom:1px solid var(--border);">
+        <div style="width:36px;height:36px;border-radius:10px;background:${badgeBgs[a.badge]||'#f5f5f5'};display:flex;align-items:center;justify-content:center;flex-shrink:0;">${badgeIcons[a.badge]||'📋'}</div>
+        <div style="flex:1;">
+          <div style="font-size:0.85rem;font-weight:700;color:var(--text-main);">${a.title}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">${a.date} · ${a.author}</div>
+        </div>
+        <button class="btn-action btn-delete" onclick="deleteNotice(${a.id})">🗑️</button>
+      </div>
+    `).join('');
+  }
+
+  function postNotice() {
+    const title = document.getElementById('nTitle').value.trim();
+    const body  = document.getElementById('nBody').value.trim();
+    const badge = document.getElementById('nBadge').value;
+    if (!title || !body) { showToast('⚠️ Fill in title and content.'); return; }
+    const notice = {
+      id:     Date.now(),
+      title, body, badge,
+      author: userEmail.split('@')[0],
+      date:   new Date().toLocaleDateString('en-GB')
+    };
+    announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+    announcements.unshift(notice);
+    localStorage.setItem('announcements', JSON.stringify(announcements));
+    document.getElementById('nTitle').value = '';
+    document.getElementById('nBody').value  = '';
+    renderNoticesAdmin();
+    showToast('✅ Notice posted!');
+  }
+
+  function deleteNotice(id) {
+    if (!confirm('Delete this notice?')) return;
+    announcements = announcements.filter(a => a.id !== id);
+    localStorage.setItem('announcements', JSON.stringify(announcements));
+    renderNoticesAdmin();
+    showToast('🗑️ Notice deleted.');
+  }
+
+  // ── CHARTS ──
+  let chartsBuilt = false;
+  function renderCharts() {
+    if (chartsBuilt) return;
+    chartsBuilt = true;
+    complaints    = JSON.parse(localStorage.getItem('complaints')    || '[]');
+    residents     = JSON.parse(localStorage.getItem('residents')     || '[]');
+
+    // Status doughnut
+    new Chart(document.getElementById('statusChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Pending','In Progress','Resolved'],
+        datasets: [{
+          data: [
+            complaints.filter(c=>c.status==='Pending').length,
+            complaints.filter(c=>c.status==='In Progress').length,
+            complaints.filter(c=>c.status==='Resolved').length
+          ],
+          backgroundColor: ['#f5a623','#2196f3','#4caf50'],
+          borderWidth: 0
+        }]
+      },
+      options: { plugins: { legend: { position:'bottom' } }, cutout:'65%' }
+    });
+
+    // Category bar
+    const cats = ['Maintenance','Cleanliness','Security','Noise','Parking','Electricity','Water','Other'];
+    new Chart(document.getElementById('categoryChart'), {
+      type: 'bar',
+      data: {
+        labels: cats,
+        datasets: [{
+          label: 'Requests',
+          data: cats.map(cat => complaints.filter(c=>c.category===cat).length),
+          backgroundColor: '#1a6b4a',
+          borderRadius: 6
+        }]
+      },
+      options: { plugins: { legend: { display:false } }, scales: { y: { beginAtZero:true, ticks:{ stepSize:1 } } } }
+    });
+
+    // Block bar
+    const blocks = ['A','B','C','D'];
+    new Chart(document.getElementById('blockChart'), {
+      type: 'bar',
+      data: {
+        labels: blocks.map(b=>'Block '+b),
+        datasets: [{
+          label: 'Residents',
+          data: blocks.map(b => residents.filter(r=>r.block===b).length),
+          backgroundColor: '#f5a623',
+          borderRadius: 6
+        }]
+      },
+      options: { plugins: { legend:{ display:false } }, scales: { y: { beginAtZero:true, ticks:{ stepSize:1 } } } }
+    });
+
+    // Summary
+    document.getElementById('summaryList').innerHTML = `
+      <div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border);font-size:0.85rem;"><span>👥 Total Residents</span><strong>${residents.length}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border);font-size:0.85rem;"><span>🛠️ Total Requests</span><strong>${complaints.length}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border);font-size:0.85rem;"><span>📢 Total Notices</span><strong>${announcements.length}</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border);font-size:0.85rem;"><span>✅ Resolved Rate</span><strong>${complaints.length ? Math.round(complaints.filter(c=>c.status==='Resolved').length/complaints.length*100) : 0}%</strong></div>
+      <div style="display:flex;justify-content:space-between;padding:0.6rem 0;font-size:0.85rem;"><span>🏘️ Blocks Active</span><strong>${[...new Set(residents.map(r=>r.block))].length}</strong></div>
+    `;
+  }
+
+  // ── Toast ──
+  function showToast(msg) {
+    document.getElementById('toastMsg').textContent = msg;
+    const toast = new bootstrap.Toast(document.getElementById('liveToast'), { delay: 3000 });
+    toast.show();
+  }
+
+  // ── Dark Mode ──
+  function toggleDark() {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+  }
+  if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+
+  // ── Init ──
+  updateStats();
+  renderRequests();
+  renderResidents();
+  renderNoticesAdmin();
+</script>
+
+</body>
+</html>

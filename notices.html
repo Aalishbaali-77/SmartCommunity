@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Notices | Smart Community</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    :root {
+      --primary:       #1a6b4a;
+      --primary-light: #22885e;
+      --accent:        #f5a623;
+      --dark:          #0f1f17;
+      --light-bg:      #f4f7f5;
+      --card-bg:       #ffffff;
+      --text-main:     #1a2e23;
+      --text-muted:    #5a7a6a;
+      --border:        #d6e8df;
+      --font:          'Segoe UI', system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--font); background: var(--light-bg); color: var(--text-main); }
+
+    /* NAVBAR */
+    .navbar { background: var(--dark) !important; padding: 0.9rem 2rem; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 20px rgba(0,0,0,0.3); }
+    .navbar-brand { font-weight: 800; font-size: 1.3rem; color: #fff !important; }
+    .navbar-brand span { color: var(--accent); }
+    .nav-link { color: rgba(255,255,255,0.75) !important; font-weight: 500; font-size: 0.9rem; padding: 0.4rem 0.9rem !important; border-radius: 6px; transition: all 0.2s; }
+    .nav-link:hover { color: #fff !important; background: rgba(255,255,255,0.08); }
+    .nav-link.active { color: #fff !important; background: var(--primary); }
+    .btn-nav-login { background: var(--accent); color: var(--dark) !important; font-weight: 700; border-radius: 8px; padding: 0.4rem 1.1rem !important; }
+    .user-badge { background: rgba(255,255,255,0.1); color: #fff; border-radius: 8px; padding: 0.35rem 0.9rem; font-size: 0.85rem; }
+    .user-badge span { color: var(--accent); font-weight: 700; }
+
+    /* PAGE HEADER */
+    .page-header { background: linear-gradient(135deg, var(--dark) 0%, #1a3d28 100%); padding: 2.5rem 0; }
+    .page-header h1 { color: #fff; font-size: 1.8rem; font-weight: 800; }
+    .page-header p  { color: rgba(255,255,255,0.6); font-size: 0.9rem; margin: 0; }
+
+    /* SEARCH & FILTER */
+    .search-bar { position: relative; }
+    .search-bar input { width: 100%; padding: 0.75rem 1rem 0.75rem 2.8rem; border: 1px solid var(--border); border-radius: 12px; font-size: 0.9rem; outline: none; font-family: var(--font); background: var(--card-bg); transition: border 0.2s; }
+    .search-bar input:focus { border-color: var(--primary); }
+    .search-icon { position: absolute; left: 0.95rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .filter-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .pill { padding: 0.35rem 1rem; border-radius: 20px; font-size: 0.82rem; font-weight: 600; border: 1px solid var(--border); background: var(--card-bg); cursor: pointer; transition: all 0.2s; font-family: var(--font); }
+    .pill:hover, .pill.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* NOTICE CARD */
+    .notice-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 1.4rem; display: flex; gap: 1.1rem; align-items: flex-start; transition: all 0.25s; animation: fadeUp 0.35s ease both; }
+    .notice-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(26,107,74,0.1); border-color: var(--primary-light); }
+    .notice-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+    .notice-card h5 { font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.35rem; }
+    .notice-card p  { font-size: 0.85rem; color: var(--text-muted); margin: 0 0 0.6rem; line-height: 1.6; }
+    .notice-meta { font-size: 0.75rem; color: #aaa; }
+    .notice-badge { font-size: 0.7rem; font-weight: 700; padding: 0.2rem 0.7rem; border-radius: 20px; }
+
+    /* ADMIN POST FORM */
+    .post-form { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 1.4rem; }
+    .post-form h6 { font-weight: 800; font-size: 1rem; margin-bottom: 1rem; color: var(--text-main); }
+    .form-control, .form-select { font-family: var(--font); font-size: 0.88rem; border-color: var(--border); border-radius: 10px; }
+    .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(26,107,74,0.1); }
+    .btn-post { background: var(--primary); color: #fff; font-weight: 700; border-radius: 10px; border: none; padding: 0.6rem 1.4rem; font-size: 0.88rem; width: 100%; transition: all 0.2s; }
+    .btn-post:hover { background: var(--primary-light); }
+
+    /* STATS SIDEBAR */
+    .stat-mini { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.2rem; display: flex; align-items: center; gap: 0.9rem; }
+    .stat-mini .num { font-size: 1.5rem; font-weight: 800; color: var(--text-main); font-family: var(--font); }
+    .stat-mini .lbl { font-size: 0.78rem; color: var(--text-muted); }
+    .stat-mini .ico { font-size: 1.4rem; }
+
+    /* EMPTY STATE */
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+    .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+
+    /* DARK MODE */
+    body.dark { --light-bg:#0f1f17; --card-bg:#162a1e; --text-main:#e8f5ee; --text-muted:#7aab90; --border:#1e3d2a; }
+    .dark-toggle { cursor: pointer; background: rgba(255,255,255,0.08); border: none; color: #fff; border-radius: 8px; padding: 0.35rem 0.8rem; font-size: 0.85rem; }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    .notice-card:nth-child(1){animation-delay:0.05s}
+    .notice-card:nth-child(2){animation-delay:0.10s}
+    .notice-card:nth-child(3){animation-delay:0.15s}
+    .notice-card:nth-child(4){animation-delay:0.20s}
+    .notice-card:nth-child(5){animation-delay:0.25s}
+
+    /* FOOTER */
+    footer { background: var(--dark); color: rgba(255,255,255,0.5); padding: 1.5rem 0; text-align: center; font-size: 0.83rem; margin-top: 3rem; }
+    footer a { color: var(--accent); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">🏘️ Smart<span>Community</span></a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav mx-auto gap-1">
+        <li class="nav-item"><a class="nav-link" href="index.html">🏠 Home</a></li>
+        <li class="nav-item"><a class="nav-link active" href="notices.html">📢 Notices</a></li>
+        <li class="nav-item"><a class="nav-link" href="request.html">🛠️ Requests</a></li>
+        <li class="nav-item"><a class="nav-link" href="dashboard.html">📊 Dashboard</a></li>
+        <li class="nav-item" id="adminNavItem" style="display:none">
+          <a class="nav-link" href="admin.html">⚙️ Admin</a>
+        </li>
+      </ul>
+      <div class="d-flex align-items-center gap-2">
+        <button class="dark-toggle" onclick="toggleDark()">🌙</button>
+        <div id="navRight"></div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="container">
+    <h1>📢 Community Notices</h1>
+    <p>Stay updated with the latest announcements from your community admin</p>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- LEFT: Notices List -->
+    <div class="col-lg-8">
+
+      <!-- Search & Filter -->
+      <div class="d-flex flex-column flex-md-row gap-3 mb-3">
+        <div class="search-bar flex-grow-1">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search notices by title or content..."/>
+        </div>
+      </div>
+      <div class="filter-pills mb-4">
+        <button class="pill active" onclick="filterNotices('all',this)">All</button>
+        <button class="pill" onclick="filterNotices('warning',this)">⚠️ Urgent</button>
+        <button class="pill" onclick="filterNotices('primary',this)">📌 General</button>
+        <button class="pill" onclick="filterNotices('success',this)">✅ Good News</button>
+        <button class="pill" onclick="filterNotices('info',this)">ℹ️ Info</button>
+        <button class="pill" onclick="filterNotices('danger',this)">🚨 Alert</button>
+      </div>
+
+      <!-- Results count -->
+      <div class="mb-3" style="font-size:0.83rem;color:var(--text-muted);">
+        Showing <strong id="resultCount">0</strong> notices
+      </div>
+
+      <!-- Notices List -->
+      <div id="noticesList" class="d-flex flex-column gap-3"></div>
+
+    </div>
+
+    <!-- RIGHT: Sidebar -->
+    <div class="col-lg-4">
+
+      <!-- Stats -->
+      <div class="d-flex flex-column gap-2 mb-3">
+        <div class="stat-mini">
+          <span class="ico">📢</span>
+          <div><div class="num" id="totalCount">0</div><div class="lbl">Total Notices</div></div>
+        </div>
+        <div class="stat-mini">
+          <span class="ico">⚠️</span>
+          <div><div class="num" id="urgentCount">0</div><div class="lbl">Urgent Alerts</div></div>
+        </div>
+        <div class="stat-mini">
+          <span class="ico">✅</span>
+          <div><div class="num" id="goodCount">0</div><div class="lbl">Good News</div></div>
+        </div>
+      </div>
+
+      <!-- Admin Post Form -->
+      <div class="post-form" id="adminForm" style="display:none;">
+        <h6>📝 Post New Notice</h6>
+        <div class="mb-2">
+          <input type="text" class="form-control mb-2" id="newTitle" placeholder="Notice title..."/>
+          <textarea class="form-control mb-2" id="newBody" rows="3" placeholder="Notice content..."></textarea>
+          <select class="form-select mb-3" id="newBadge">
+            <option value="primary">📌 General</option>
+            <option value="warning">⚠️ Urgent</option>
+            <option value="success">✅ Good News</option>
+            <option value="info">ℹ️ Info</option>
+            <option value="danger">🚨 Alert</option>
+          </select>
+          <button class="btn-post" onclick="postNotice()">Post Notice 📢</button>
+        </div>
+      </div>
+
+      <!-- Not admin message -->
+      <div class="post-form" id="residentNote" style="display:none;">
+        <h6>📋 Notice Board</h6>
+        <p style="font-size:0.83rem;color:var(--text-muted);margin:0;">
+          Only admins can post notices. Contact your community admin for announcements.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <p>🏘️ <strong style="color:#fff;">SmartCommunity</strong> · Iqra University Karachi · 2026</p>
+  </div>
+</footer>
+
+<!-- TOAST -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index:9999">
+  <div id="liveToast" class="toast align-items-center text-white border-0" style="background:var(--primary);" role="alert">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMsg">Done!</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+<script>
+  // ── Auth ──
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const userEmail  = localStorage.getItem('userEmail') || '';
+  const userRole   = localStorage.getItem('userRole')  || '';
+
+  // ── Navbar ──
+  const navRight = document.getElementById('navRight');
+  if (isLoggedIn) {
+    navRight.innerHTML = `
+      <span class="user-badge">👤 <span>${userEmail.split('@')[0]}</span> · ${userRole}</span>
+      <button onclick="logout()" class="btn-nav-login nav-link ms-2">Logout</button>
+    `;
+    if (userRole === 'admin') {
+      document.getElementById('adminNavItem').style.display = 'block';
+      document.getElementById('adminForm').style.display    = 'block';
+    } else {
+      document.getElementById('residentNote').style.display = 'block';
+    }
+  } else {
+    navRight.innerHTML = `<a href="login.html" class="btn-nav-login nav-link">Login / Register</a>`;
+    document.getElementById('residentNote').style.display = 'block';
+  }
+
+  function logout() {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('userRole');
+    window.location.href = 'login.html';
+  }
+
+  // ── Data ──
+  let announcements = JSON.parse(localStorage.getItem('announcements') || '[]');
+  let currentFilter = 'all';
+  let currentSearch = '';
+
+  const badgeBgs   = { warning:'#fff3e0', primary:'#e3f2fd', success:'#e8f5e9', info:'#e0f7fa', danger:'#fce4ec' };
+  const badgeIcons = { warning:'⚠️', primary:'📌', success:'✅', info:'ℹ️', danger:'🚨' };
+  const badgeColors= { warning:'#e65100', primary:'#1565c0', success:'#2e7d32', info:'#00695c', danger:'#b71c1c' };
+  const badgeLabels= { warning:'Urgent', primary:'General', success:'Good News', info:'Info', danger:'Alert' };
+
+  // ── Sidebar stats ──
+  function updateStats() {
+    document.getElementById('totalCount').textContent  = announcements.length;
+    document.getElementById('urgentCount').textContent = announcements.filter(a => a.badge === 'warning' || a.badge === 'danger').length;
+    document.getElementById('goodCount').textContent   = announcements.filter(a => a.badge === 'success').length;
+  }
+
+  // ── Render ──
+  function renderNotices() {
+    let list = [...announcements];
+    if (currentFilter !== 'all') list = list.filter(a => a.badge === currentFilter);
+    if (currentSearch) list = list.filter(a =>
+      a.title.toLowerCase().includes(currentSearch) ||
+      a.body.toLowerCase().includes(currentSearch)
+    );
+
+    document.getElementById('resultCount').textContent = list.length;
+    const container = document.getElementById('noticesList');
+
+    if (list.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="icon">📭</div>
+          <p style="font-weight:600;">No notices found</p>
+          <p style="font-size:0.83rem;">Try a different filter or search term.</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = list.map(a => `
+      <div class="notice-card">
+        <div class="notice-icon" style="background:${badgeBgs[a.badge]||'#f5f5f5'}">
+          ${badgeIcons[a.badge]||'📋'}
+        </div>
+        <div style="flex:1;">
+          <div class="d-flex justify-content-between align-items-start mb-1">
+            <h5 class="mb-0">${a.title}</h5>
+            <span class="notice-badge ms-2" style="background:${badgeBgs[a.badge]};color:${badgeColors[a.badge]}">
+              ${badgeLabels[a.badge]||'Notice'}
+            </span>
+          </div>
+          <p>${a.body}</p>
+          <div class="notice-meta">📅 ${a.date} &nbsp;·&nbsp; 👤 ${a.author}</div>
+        </div>
+        ${userRole === 'admin' ? `<button onclick="deleteNotice(${a.id})" style="background:none;border:none;color:#ccc;font-size:1rem;cursor:pointer;padding:0 0.3rem;" title="Delete">🗑️</button>` : ''}
+      </div>
+    `).join('');
+  }
+
+  // ── Filter ──
+  function filterNotices(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    renderNotices();
+  }
+
+  // ── Search ──
+  document.getElementById('searchInput').addEventListener('input', e => {
+    currentSearch = e.target.value.toLowerCase();
+    renderNotices();
+  });
+
+  // ── Post Notice (Admin only) ──
+  function postNotice() {
+    const title = document.getElementById('newTitle').value.trim();
+    const body  = document.getElementById('newBody').value.trim();
+    const badge = document.getElementById('newBadge').value;
+
+    if (!title || !body) {
+      showToast('⚠️ Please fill in both title and content.');
+      return;
+    }
+
+    const newNotice = {
+      id:     Date.now(),
+      title,
+      body,
+      badge,
+      author: userEmail.split('@')[0],
+      date:   new Date().toLocaleDateString('en-GB')
+    };
+
+    announcements.unshift(newNotice);
+    localStorage.setItem('announcements', JSON.stringify(announcements));
+
+    document.getElementById('newTitle').value = '';
+    document.getElementById('newBody').value  = '';
+
+    updateStats();
+    renderNotices();
+    showToast('✅ Notice posted successfully!');
+  }
+
+  // ── Delete Notice (Admin only) ──
+  function deleteNotice(id) {
+    if (!confirm('Delete this notice?')) return;
+    announcements = announcements.filter(a => a.id !== id);
+    localStorage.setItem('announcements', JSON.stringify(announcements));
+    updateStats();
+    renderNotices();
+    showToast('🗑️ Notice deleted.');
+  }
+
+  // ── Toast ──
+  function showToast(msg) {
+    document.getElementById('toastMsg').textContent = msg;
+    const toast = new bootstrap.Toast(document.getElementById('liveToast'), { delay: 3000 });
+    toast.show();
+  }
+
+  // ── Dark Mode ──
+  function toggleDark() {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+  }
+  if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+
+  // ── Init ──
+  updateStats();
+  renderNotices();
+</script>
+
+</body>
+</html>
