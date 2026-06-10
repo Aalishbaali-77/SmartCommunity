@@ -107,10 +107,3 @@ git clone https://github.com/Aalishbaali-77/SmartCommunity.git
 ## 📄 License
 
 This project is for academic purposes only.
-
-📸 Optional — Add Screenshots
-If you want the screenshot table to work:
-
-Take screenshots of each page
-Save them as home.png, dashboard.png, admin.png, notices.png
-Put th
